@@ -72,7 +72,7 @@ public class LdapConnectionFactory : ILdapConnectionFactory
             _options.Host,
             _options.Port,
             _options.Domain,
-            _options.UserName,
+            _options.Username,
             _options.Password,
             _options.SecureSocketLayer,
             _options.TrustAllCertificates);

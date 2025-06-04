@@ -8,7 +8,7 @@ var connectionFactory = new LdapConnectionFactory(new LdapOptions()
     Zone = "local",
     Domain = "lorien",
     Server = "lorien.local",
-    UserName = "Administrator",
+    Username = "Administrator",
     Password = "P@ssw0rd"
 });
 

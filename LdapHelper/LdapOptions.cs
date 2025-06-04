@@ -45,7 +45,7 @@ public class LdapOptions
     /// <summary>
     /// Service account username.
     /// </summary>
-    public string UserName { get; init; } = null!;
+    public string Username { get; init; } = null!;
 
     /// <summary>
     /// Service account password.
