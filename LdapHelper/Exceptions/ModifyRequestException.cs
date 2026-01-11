@@ -8,7 +8,7 @@ public class ModifyRequestException : Exception
 
     public ModifyResponse Response { get; }
 
-    public ModifyRequestException(ResultCode resultCode, string message, ModifyResponse response)
+    internal ModifyRequestException(ResultCode resultCode, string message, ModifyResponse response)
         : base(message)
     {
         ResultCode = resultCode;

@@ -2,23 +2,39 @@ using LdapHelper;
 
 using Sandbox;
 
-var connectionFactory = new LdapConnectionFactory(new LdapOptions()
+var ldapOptions = new LdapOptions()
 {
-    Host = "192.168.0.232",
+    Host = "192.168.0.241",
     Zone = "local",
     Domain = "lorien",
     Server = "lorien.local",
     Username = "Administrator",
     Password = "P@ssw0rd"
-});
+};
 
-using var service = new ActiveDirectoryService(connectionFactory, new ActiveDirectoryOptions
+var connectionFactory = new LdapConnectionFactory(ldapOptions);
+
+using var connection = connectionFactory.CreateConnection();
+
+var service = new ActiveDirectoryService(connection);
+
+// Query base: DC=lorien,DC=local
+
+FilterBuilder johnFilter = new FilterBuilder()
+    .AddObjectCategory()
+    .AddObjectClass()
+    .AddAccountEnabledFilter()
+    .AddUpn("john@lorien.local");
+
+var john = service.GetUsers<User>(User.Attributes, "OU=RNB Users,DC=lorien,DC=local", johnFilter.Build())
+    .SingleOrDefault();
+
+if (john != null)
 {
-    QueryBase = "DC=lorien,DC=local"
-});
+    Console.WriteLine($"John found: {john.Name}");
+}
 
-//var user = service.GetUserByUpn<ADUser>("Administrator@lorien.local", "CN=Users");
-//var css = service.GetUserBySam<ADUser>("cal_sync_svc", "CN=Users");
+//var css = service.GetUserBySam<User>("cal_sync_svc", "CN=Users");
 
 //if (user is not null)
 //{
@@ -32,17 +48,23 @@ using var service = new ActiveDirectoryService(connectionFactory, new ActiveDire
 //    Console.WriteLine("User not found.");
 //}
 
-//var users = service.GetUsers<ADUser>(ADUser.Attributes.ToArray(), "CN=Users");
+//var users = service.GetUsers<User>(User.Attributes.ToArray(), "CN=Users");
 //foreach (var user in users)
 //{
 //    Console.WriteLine(user.DistinguishedName);
 //}
 
-//var user = service.GetUserBySam<ADUser>("cal_sync_svc", "CN=Users");
+//var user = service.GetUserBySam<User>("cal_sync_svc", "CN=Users");
 //service.ChangePassword(user!.DistinguishedName, "pacan", "mazab");
 
-var users = service.GetUsers<ADUser>(ADUser.Attributes.ToArray(), "(memberOf=CN=Tech,CN=Users,DC=lorien,DC=local)", "CN=Users");
+FilterBuilder usersFilter = new FilterBuilder()
+    .AddObjectCategory()
+    .AddObjectClass()
+    .AddAccountEnabledFilter()
+    .AddMemberOf("CN=DealerManagers,OU=RNB Groups,DC=lorien,DC=local");
+
+var users = service.GetUsers<User>(User.Attributes, "OU=RNB Users,DC=lorien,DC=local", usersFilter.Build());
 foreach (var user in users)
 {
-    Console.WriteLine(user.Email);
+    Console.WriteLine(user.UserPrincipalName);
 }

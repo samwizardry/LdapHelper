@@ -8,7 +8,7 @@ public class SearchRequestException : Exception
 
     public SearchResponse Response { get; }
 
-    public SearchRequestException(ResultCode resultCode, string message, SearchResponse response)
+    internal SearchRequestException(ResultCode resultCode, string message, SearchResponse response)
         : base (message)
     {
         ResultCode = resultCode;

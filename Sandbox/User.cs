@@ -6,7 +6,7 @@ using LdapHelper;
 
 namespace Sandbox;
 
-class ADUser : IUser<ADUser>
+class User : IUser<User>
 {
     /// <summary>
     /// objectGUID.
@@ -128,9 +128,9 @@ class ADUser : IUser<ADUser>
     public bool IsLockedOut() =>
         (UserAccountControl & UserAccountControlFlag.LOCKOUT) == UserAccountControlFlag.LOCKOUT;
 
-    public static ADUser? ParseUser(SearchResultEntry entry)
+    public static User? ParseUser(SearchResultEntry entry)
     {
-        var user = new ADUser
+        var user = new User
         {
             ObjectGuid = new Guid(entry.GetAttributeValue<byte[]>("objectGUID")!),
             SAMAccountName = entry.GetAttributeValue<string>("sAMAccountName")!,
@@ -173,8 +173,7 @@ class ADUser : IUser<ADUser>
     /// <summary>
     /// Requesting fields.
     /// </summary>
-    public static IReadOnlyCollection<string> Attributes => new List<string>
-    {
+    public static readonly string[] Attributes = [
         "objectGUID",
         "sAMAccountName",
         "userPrincipalName",
@@ -193,6 +192,5 @@ class ADUser : IUser<ADUser>
         "info",
         "logonCount",
         "lastLogon",
-        "lastLogonTimestamp"
-    }.AsReadOnly();
+        "lastLogonTimestamp"];
 }

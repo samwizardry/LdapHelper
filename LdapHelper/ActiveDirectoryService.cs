@@ -5,37 +5,13 @@ using LdapHelper.Exceptions;
 
 namespace LdapHelper;
 
-public class ActiveDirectoryService : IDisposable
+public class ActiveDirectoryService
 {
-    private bool _disposed = false;
     private readonly LdapConnection _connection;
 
-    public string QueryBase { get; set; }
-
-    public ActiveDirectoryService(ILdapConnectionFactory connectionFactory, ActiveDirectoryOptions options)
+    public ActiveDirectoryService(LdapConnection connection)
     {
-        _connection = connectionFactory.CreateConnection();
-
-        QueryBase = options.QueryBase;
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed)
-            return;
-
-        if (disposing)
-        {
-            _connection?.Dispose();
-        }
-
-        _disposed = true;
+        _connection = connection;
     }
 
     public SearchResponse SendSearchRequest(
@@ -44,7 +20,7 @@ public class ActiveDirectoryService : IDisposable
         SearchScope searchScope,
         params string[] attributes)
     {
-#if DEBUG
+#if LDAPHELPER_DEBUG
         Console.WriteLine($"""
             LDAPv3
             Base: "{distinguishedName}" with scope {searchScope}
@@ -60,7 +36,7 @@ public class ActiveDirectoryService : IDisposable
         string distinguishedName,
         params DirectoryAttributeModification[] modifications)
     {
-#if DEBUG
+#if LDAPHELPER_DEBUG
         Console.WriteLine($"""
             dn: {distinguishedName}
             changetype: modify
@@ -77,95 +53,12 @@ public class ActiveDirectoryService : IDisposable
         return (ModifyResponse)_connection.SendRequest(new ModifyRequest(distinguishedName, modifications));
     }
 
-    public TUser? GetUser<TUser>(string[] attributes, string distinguishedName, string filter)
+    public IEnumerable<TUser> GetUsers<TUser>(string[] attributes, string queryBase, string filter)
         where TUser : class, IUser<TUser>, new()
     {
         SearchResponse response = SendSearchRequest(
-            distinguishedName,
+            queryBase,
             filter,
-            SearchScope.Subtree,
-            attributes);
-
-        if (response.ResultCode != ResultCode.Success)
-        {
-            throw new SearchRequestException(response.ResultCode, response.ErrorMessage, response);
-        }
-
-        if (response.Entries.Count == 0)
-        {
-            return null;
-        }
-
-        if (response.Entries.Count > 1)
-        {
-            throw new InvalidOperationException("The input sequence contains more than one element.");
-        }
-
-        return TUser.ParseUser(response.Entries[0]);
-    }
-
-    public TUser? GetUserBySam<TUser>(string sAMAccountName, string[] attributes, string? queryBase = null)
-        where TUser : class, IUser<TUser>, new()
-    {
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(sAMAccountName);
-
-        string filter = new StringBuilder("(&")
-            .Append("(objectCategory=person)")
-            .Append("(objectClass=user)")
-            .Append($"(sAMAccountName={sAMAccountName})")
-            .Append(")")
-            .ToString();
-
-        return GetUser<TUser>(attributes, BuildDistinguishedName(queryBase), filter);
-    }
-
-    public TUser? GetUserByUpn<TUser>(string userPrincipalName, string[] attributes, string? queryBase = null)
-        where TUser : class, IUser<TUser>, new()
-    {
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(userPrincipalName);
-
-        string filter = new StringBuilder("(&")
-            .Append("(objectCategory=person)")
-            .Append("(objectClass=user)")
-            .Append($"(userPrincipalName={userPrincipalName})")
-            .Append(")")
-            .ToString();
-
-        return GetUser<TUser>(attributes, BuildDistinguishedName(queryBase), filter);
-    }
-
-    public TUser? GetUserByGuid<TUser>(string objectGuid, string[] attributes)
-        where TUser : class, IUser<TUser>, new()
-    {
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(objectGuid);
-
-        string distinguishedName = $"<GUID={objectGuid.ToUpper()}>";
-
-        string filter = new StringBuilder("(&")
-            .Append("(objectCategory=person)")
-            .Append("(objectClass=user)")
-            .Append(")")
-            .ToString();
-
-        return GetUser<TUser>(attributes, distinguishedName, filter);
-    }
-
-    public IEnumerable<TUser> GetUsers<TUser>(string[] attributes, string? filter = null, string? queryBase = null)
-        where TUser : class, IUser<TUser>, new()
-    {
-        var filterBuilder = new StringBuilder("(&")
-            .Append("(objectCategory=person)")
-            .Append("(objectClass=user)");
-
-        if (!string.IsNullOrEmpty(filter))
-            filterBuilder.Append(filter);
-
-        filterBuilder.Append(")")
-            .ToString();
-
-        SearchResponse response = SendSearchRequest(
-            BuildDistinguishedName(queryBase),
-            filterBuilder.ToString(),
             SearchScope.Subtree,
             attributes);
 
@@ -183,12 +76,8 @@ public class ActiveDirectoryService : IDisposable
         }
     }
 
-    public void ChangePassword(string distinguishedName, string oldPassword, string newPassword, string? usersQueryBase = null)
+    public void ChangePassword(string distinguishedName, string oldPassword, string newPassword)
     {
-        ArgumentNullException.ThrowIfNull(distinguishedName);
-        ArgumentNullException.ThrowIfNull(oldPassword);
-        ArgumentNullException.ThrowIfNull(newPassword);
-
         var removePwdMod = new DirectoryAttributeModification();
         removePwdMod.Operation = DirectoryAttributeOperation.Delete;
         removePwdMod.Name = "unicodePwd";
@@ -224,19 +113,5 @@ public class ActiveDirectoryService : IDisposable
         {
             return false;
         }
-    }
-
-    /// <summary>
-    /// Builds a distinguished name using the query base of the service
-    /// and the query base within the current request.
-    /// </summary>
-    public string BuildDistinguishedName(string? queryBase = null)
-    {
-        if (!string.IsNullOrWhiteSpace(queryBase))
-        {
-            return $"{queryBase},{QueryBase}";
-        }
-
-        return QueryBase;
     }
 }

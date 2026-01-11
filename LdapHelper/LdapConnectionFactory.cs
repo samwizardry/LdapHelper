@@ -36,7 +36,7 @@ public class LdapConnectionFactory : ILdapConnectionFactory
         // instead(!) of prepending username with domain
         //username = $"uid={username},CN=Users,DC={options.Subdomain},DC={options.Domain},DC={options.Zone}";
 
-#if DEBUG
+#if LDAPHELPER_DEBUG
         Console.WriteLine($"Creating LDAP Connection for {username} with Directory Identifier {host}:{port} and AuthType {AuthType.Basic}");
 #endif
 
