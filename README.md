@@ -1,6 +1,6 @@
 # LdapHelper
 
-[![NuGet Version](https://img.shields.io/nuget/v/LdapHelper.svg)](https://www.nuget.org/packages/LdapHelper/)
+[![NuGet Version](https://img.shields.io/nuget/v/Samwizardry.LdapHelper.svg)](https://www.nuget.org/packages/Samwizardry.LdapHelper/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
 
@@ -25,13 +25,13 @@ A modern, robust, and high-performance .NET library for interacting with **Activ
 Install the package via the .NET CLI:
 
 ```bash
-dotnet add package LdapHelper
+dotnet add package Samwizardry.LdapHelper
 ```
 
 Or via the NuGet Package Manager Console:
 
 ```powershell
-Install-Package LdapHelper
+Install-Package Samwizardry.LdapHelper
 ```
 
 ---

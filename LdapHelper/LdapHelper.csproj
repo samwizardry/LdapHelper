@@ -8,9 +8,9 @@
 
     <!-- Package Metadata -->
     <Authors>samwizardry</Authors>
-    <Product>LdapHelper</Product>
-    <PackageId>LdapHelper</PackageId>
-    <Title>LdapHelper</Title>
+    <Product>Samwizardry.LdapHelper</Product>
+    <PackageId>Samwizardry.LdapHelper</PackageId>
+    <Title>Samwizardry.LdapHelper</Title>
     <Description>A modern, high-performance .NET library for Active Directory and LDAP operations built on System.DirectoryServices.Protocols. Features automatic LDAP pagination, RFC 4515 injection-safe filter building, user queries, password management, authentication, and Dependency Injection integration.</Description>
     <PackageTags>ldap;active-directory;activedirectory;ad;directoryservices;protocols;ldap-client;authentication;identity;filterbuilder;pagination</PackageTags>
     <PackageProjectUrl>https://github.com/samwizardry/LdapHelper</PackageProjectUrl>

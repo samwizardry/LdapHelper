@@ -37,7 +37,7 @@ jobs:
       - name: 'Build'
         run: dotnet build -p:Version=${{ steps.get_version.outputs.version }} --configuration Release --no-restore
 
-      # Has no active directory to run tests against
+      # Has no active directory to run tests against at the moment
       # - name: 'Test'
       #   run: dotnet test --configuration Release --no-build
 
