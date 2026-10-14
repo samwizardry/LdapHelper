@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="LdapHelper/LdapHelper.csproj" />
+  <Project Path="Sandbox/Sandbox.csproj" />
+</Solution>

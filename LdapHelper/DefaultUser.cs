@@ -1,12 +1,10 @@
-using System.DirectoryServices.Protocols;
+﻿using System.DirectoryServices.Protocols;
 using System.Globalization;
 using System.Text;
 
-using LdapHelper;
+namespace LdapHelper;
 
-namespace Sandbox;
-
-class User : IUser<User>
+public class DefaultUser : IUser<DefaultUser>
 {
     /// <summary>
     /// objectGUID.
@@ -128,9 +126,9 @@ class User : IUser<User>
     public bool IsLockedOut() =>
         (UserAccountControl & UserAccountControlFlag.LOCKOUT) == UserAccountControlFlag.LOCKOUT;
 
-    public static User? ParseUser(SearchResultEntry entry)
+    public static DefaultUser? ParseUser(SearchResultEntry entry)
     {
-        var user = new User
+        var user = new DefaultUser
         {
             ObjectGuid = new Guid(entry.GetAttributeValue<byte[]>("objectGUID")!),
             SAMAccountName = entry.GetAttributeValue<string>("sAMAccountName")!,

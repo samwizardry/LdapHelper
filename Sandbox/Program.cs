@@ -1,10 +1,8 @@
 using LdapHelper;
 
-using Sandbox;
-
 var ldapOptions = new LdapOptions()
 {
-    Host = "192.168.0.241",
+    Host = "192.168.0.137",
     Zone = "local",
     Domain = "lorien",
     Server = "lorien.local",
@@ -26,7 +24,7 @@ FilterBuilder johnFilter = new FilterBuilder()
     .AddAccountEnabledFilter()
     .AddUpn("john@lorien.local");
 
-var john = service.GetUsers<User>(User.Attributes, "OU=RNB Users,DC=lorien,DC=local", johnFilter.Build())
+var john = service.GetUsers<DefaultUser>(DefaultUser.Attributes, "OU=Company Users,DC=lorien,DC=local", johnFilter.Build())
     .SingleOrDefault();
 
 if (john != null)
@@ -61,9 +59,9 @@ FilterBuilder usersFilter = new FilterBuilder()
     .AddObjectCategory()
     .AddObjectClass()
     .AddAccountEnabledFilter()
-    .AddMemberOf("CN=DealerManagers,OU=RNB Groups,DC=lorien,DC=local");
+    .AddMemberOf("CN=Company Managers,OU=Company Groups,DC=lorien,DC=local");
 
-var users = service.GetUsers<User>(User.Attributes, "OU=RNB Users,DC=lorien,DC=local", usersFilter.Build());
+var users = service.GetUsers<DefaultUser>(DefaultUser.Attributes, "OU=Company Users,DC=lorien,DC=local", usersFilter.Build());
 foreach (var user in users)
 {
     Console.WriteLine(user.UserPrincipalName);
