@@ -1,11 +1,36 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+    <!-- Package Metadata -->
+    <Authors>samwizardry</Authors>
+    <Product>LdapHelper</Product>
+    <PackageId>LdapHelper</PackageId>
+    <Title>LdapHelper</Title>
+    <Description>A modern, high-performance .NET library for Active Directory and LDAP operations built on System.DirectoryServices.Protocols. Features automatic LDAP pagination, RFC 4515 injection-safe filter building, user queries, password management, authentication, and Dependency Injection integration.</Description>
+    <PackageTags>ldap;active-directory;activedirectory;ad;directoryservices;protocols;ldap-client;authentication;identity;filterbuilder;pagination</PackageTags>
+    <PackageProjectUrl>https://github.com/samwizardry/LdapHelper</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/samwizardry/LdapHelper</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- Symbols & Documentation -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591;1570;1572;1573;1574</NoWarn>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
