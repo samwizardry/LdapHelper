@@ -4,62 +4,144 @@ namespace LdapHelper;
 
 public sealed class FilterBuilder
 {
-    private readonly StringBuilder _filter = new("(&");
+    private readonly List<string> _conditions = [];
+
+    public static string EscapeFilterValue(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return string.Empty;
+
+        var sb = new StringBuilder(value.Length);
+        foreach (char c in value)
+        {
+            switch (c)
+            {
+                case '*':
+                    sb.Append(@"\2a");
+                    break;
+                case '(':
+                    sb.Append(@"\28");
+                    break;
+                case ')':
+                    sb.Append(@"\29");
+                    break;
+                case '\\':
+                    sb.Append(@"\5c");
+                    break;
+                case '\0':
+                    sb.Append(@"\00");
+                    break;
+                default:
+                    sb.Append(c);
+                    break;
+            }
+        }
+
+        return sb.ToString();
+    }
 
     public string Build()
     {
-        _filter.Append(")");
-        return _filter.ToString();
+        if (_conditions.Count == 0)
+            return "(&(objectClass=*))";
+
+        var sb = new StringBuilder("(&");
+        foreach (string condition in _conditions)
+        {
+            sb.Append(condition);
+        }
+        sb.Append(')');
+
+        return sb.ToString();
     }
 
-    public FilterBuilder AddObjectCategory(string objectCategory = "person")
+    public FilterBuilder AddRaw(string rawCondition)
     {
-        _filter.Append($"(objectCategory={objectCategory})");
+        ArgumentException.ThrowIfNullOrWhiteSpace(rawCondition);
+
+        string trimmed = rawCondition.Trim();
+        if (!trimmed.StartsWith('(') || !trimmed.EndsWith(')'))
+            trimmed = $"({trimmed})";
+
+        _conditions.Add(trimmed);
         return this;
     }
 
-    public FilterBuilder AddObjectClass(string objectClass = "user")
+    public FilterBuilder AddEquals(string attribute, string value, bool escape = true)
     {
-        _filter.Append($"(objectClass={objectClass})");
+        ArgumentException.ThrowIfNullOrWhiteSpace(attribute);
+        ArgumentNullException.ThrowIfNull(value);
+
+        string safeValue = escape ? EscapeFilterValue(value) : value;
+        _conditions.Add($"({attribute}={safeValue})");
         return this;
     }
+
+    public FilterBuilder AddObjectCategory(string objectCategory = "person") =>
+        AddEquals("objectCategory", objectCategory);
+
+    public FilterBuilder AddObjectClass(string objectClass = "user") =>
+        AddEquals("objectClass", objectClass);
 
     public FilterBuilder AddAccountEnabledFilter()
     {
-        _filter.Append($"(!({Constants.AccountDisabledFilter}))");
+        _conditions.Add($"(!({Constants.AccountDisabledFilter}))");
         return this;
     }
 
     public FilterBuilder AddAccountDisabledFilter()
     {
-        _filter.Append($"({Constants.AccountDisabledFilter})");
+        _conditions.Add($"({Constants.AccountDisabledFilter})");
         return this;
     }
 
     public FilterBuilder AddMemberOf(string group)
     {
-        _filter.Append($"(memberOf={group})");
+        ArgumentException.ThrowIfNullOrWhiteSpace(group);
+        // In DNs, parentheses must still be escaped for LDAP filters
+        string safeGroup = group.Replace("(", @"\28").Replace(")", @"\29");
+        _conditions.Add($"(memberOf={safeGroup})");
         return this;
     }
 
     /// <summary>
-    /// Operator "OR".
+    /// Matches users who are a member of ANY of the specified groups (OR logic).
     /// </summary>
     public FilterBuilder AddMemberOf(params string[] groups)
     {
-        _filter.Append("(|");
-        foreach (var group in groups)
-        {
-            _filter.Append($"(memberOf={group})");
-        }
-        _filter.Append(")");
+        if (groups is null || groups.Length == 0)
+            return this;
 
+        if (groups.Length == 1)
+            return AddMemberOf(groups[0]);
+
+        var sb = new StringBuilder("(|");
+        foreach (string group in groups)
+        {
+            if (string.IsNullOrWhiteSpace(group))
+                continue;
+
+            string safeGroup = group.Replace("(", @"\28").Replace(")", @"\29");
+            sb.Append($"(memberOf={safeGroup})");
+        }
+        sb.Append(')');
+
+        _conditions.Add(sb.ToString());
         return this;
     }
 
-    public FilterBuilder AddUpn(string upn)
+    public FilterBuilder AddUpn(string upn) =>
+        AddEquals("userPrincipalName", upn);
+
+    public FilterBuilder AddSamAccountName(string samAccountName) =>
+        AddEquals("sAMAccountName", samAccountName);
+
+    public FilterBuilder AddEmail(string email) =>
+        AddEquals("mail", email);
+
+    public FilterBuilder Clear()
     {
-        _filter.Append($"(userPrincipalName={upn})");
+        _conditions.Clear();
         return this;
     }
 }

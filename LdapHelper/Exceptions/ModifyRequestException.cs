@@ -2,16 +2,17 @@ using System.DirectoryServices.Protocols;
 
 namespace LdapHelper.Exceptions;
 
-public class ModifyRequestException : Exception
+public class ModifyRequestException : LdapOperationException
 {
-    public ResultCode ResultCode { get; }
+    public new ModifyResponse? Response => (ModifyResponse?)base.Response;
 
-    public ModifyResponse Response { get; }
-
-    internal ModifyRequestException(ResultCode resultCode, string message, ModifyResponse response)
-        : base(message)
+    public ModifyRequestException(ResultCode resultCode, string? message, ModifyResponse? response = null)
+        : base(resultCode, string.IsNullOrWhiteSpace(message) ? $"LDAP modification failed with result code {resultCode} ({(int)resultCode})." : message, response)
     {
-        ResultCode = resultCode;
-        Response = response;
+    }
+
+    public ModifyRequestException(ResultCode resultCode, string? message, Exception? innerException, ModifyResponse? response = null)
+        : base(resultCode, string.IsNullOrWhiteSpace(message) ? $"LDAP modification failed with result code {resultCode} ({(int)resultCode})." : message, innerException, response)
+    {
     }
 }

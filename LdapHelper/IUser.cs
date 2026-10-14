@@ -2,8 +2,21 @@ using System.DirectoryServices.Protocols;
 
 namespace LdapHelper;
 
-public interface IUser<TUser>
-    where TUser : class, new()
+public interface IUser
 {
-    static abstract TUser? ParseUser(SearchResultEntry entry);
+    Guid? ObjectGuid { get; }
+
+    string? SamAccountName { get; }
+
+    string? UserPrincipalName { get; }
+
+    string? DistinguishedName { get; }
+
+    string? Email { get; }
+}
+
+public interface IUser<TSelf> : IUser
+    where TSelf : class, IUser<TSelf>
+{
+    static abstract TSelf? ParseUser(SearchResultEntry entry);
 }

@@ -1,63 +1,61 @@
-﻿using System.DirectoryServices.Protocols;
-using System.Globalization;
-using System.Text;
+using System.DirectoryServices.Protocols;
 
 namespace LdapHelper;
 
 public class DefaultUser : IUser<DefaultUser>
 {
     /// <summary>
-    /// objectGUID.
+    /// objectGUID in Active Directory.
     /// </summary>
-    public Guid ObjectGuid { get; set; }
+    public Guid? ObjectGuid { get; set; }
 
     /// <summary>
-    /// sAMAccountName.
+    /// sAMAccountName (Windows logon name).
     /// </summary>
-    public string SAMAccountName { get; set; } = null!;
+    public string SamAccountName { get; set; } = string.Empty;
 
     /// <summary>
-    /// userPrincipalName.
+    /// userPrincipalName (e.g. user@domain.com). Can be null in Active Directory.
     /// </summary>
-    public string UserPrincipalName { get; set; } = null!;
+    public string? UserPrincipalName { get; set; }
 
     /// <summary>
-    /// userAccountControl.
+    /// userAccountControl flags.
     /// </summary>
-    public UserAccountControlFlag UserAccountControl { get; set; }
+    public UserAccountControlFlags UserAccountControl { get; set; }
 
     /// <summary>
-    /// whenCreated.
+    /// whenCreated timestamp in UTC.
     /// </summary>
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? CreatedAt { get; set; }
 
     /// <summary>
-    /// whenChanged.
+    /// whenChanged timestamp in UTC.
     /// </summary>
-    public DateTimeOffset LastModifiedAt { get; set; }
+    public DateTimeOffset? LastModifiedAt { get; set; }
 
     /// <summary>
     /// distinguishedName.
     /// </summary>
-    public string DistinguishedName { get; set; } = null!;
+    public string DistinguishedName { get; set; } = string.Empty;
 
     /// <summary>
-    /// cn.
+    /// cn (Common Name).
     /// </summary>
     public string? CommonName { get; set; }
 
     /// <summary>
-    /// name.
+    /// Display name (name attribute).
     /// </summary>
     public string? Name { get; set; }
 
     /// <summary>
-    /// memberOf.
+    /// Distinguished names of groups the user belongs to (memberOf).
     /// </summary>
-    public List<string> Groups { get; set; } = [];
+    public List<string> Groups { get; } = [];
 
     /// <summary>
-    /// mail.
+    /// mail (Primary email address).
     /// </summary>
     public string? Email { get; set; }
 
@@ -67,12 +65,12 @@ public class DefaultUser : IUser<DefaultUser>
     public string? TelephoneNumber { get; set; }
 
     /// <summary>
-    /// givenName.
+    /// givenName (First name).
     /// </summary>
     public string? GivenName { get; set; }
 
     /// <summary>
-    /// sn.
+    /// sn (Surname / Last name).
     /// </summary>
     public string? Surname { get; set; }
 
@@ -82,96 +80,89 @@ public class DefaultUser : IUser<DefaultUser>
     public string? Company { get; set; }
 
     /// <summary>
-    /// info.
+    /// info (Notes/Comments).
     /// </summary>
     public string? Info { get; set; }
 
     /// <summary>
-    /// logonCount.
-    /// Counts the number of successful times the user tried to log on to this account.
+    /// logonCount. Number of successful logons to this account.
     /// </summary>
     public int LogonCount { get; set; }
 
     /// <summary>
-    /// lastLogon.
-    /// The last time the user logged on.
-    /// This value is stored as a large integer that represents the number of 100-nanosecond intervals since January 1, 1601 (UTC).
-    /// A value of zero means that the last logon time is unknown.
+    /// Raw lastLogon value (100-nanosecond intervals since January 1, 1601 UTC).
+    /// Not replicated between domain controllers.
     /// </summary>
     public long LastLogon { get; set; }
 
     /// <summary>
-    /// lastLogonTimestamp.
-    /// Lastlogon is only updated on the domain controller that performs the authentication and is not replicated.
-    /// LastLogontimestamp is replicated, but by default only if it is 14 days or more older than the previous value.
+    /// Raw lastLogonTimestamp value (replicated, updated at most every 9-14 days).
     /// </summary>
     public long LastLogonTimestamp { get; set; }
 
     /// <summary>
-    /// LastLogon в формате DateTimeOffset.
+    /// lastLogon in UTC. Null if never logged on or unknown.
     /// </summary>
-    public DateTimeOffset LastLogonDt { get; set; }
+    public DateTimeOffset? LastLogonTime { get; set; }
 
     /// <summary>
-    /// LastLogonTimestamp в формате DateTimeOffset.
+    /// lastLogonTimestamp in UTC. Null if never logged on or unknown.
     /// </summary>
-    public DateTimeOffset LastLogonTimestampDt { get; set; }
+    public DateTimeOffset? LastLogonTimestampTime { get; set; }
 
     public bool IsNormalAccount() =>
-        (UserAccountControl & UserAccountControlFlag.NORMAL_ACCOUNT) == UserAccountControlFlag.NORMAL_ACCOUNT;
+        UserAccountControl.HasFlag(UserAccountControlFlags.NormalAccount);
 
     public bool IsAccountDisabled() =>
-        (UserAccountControl & UserAccountControlFlag.ACCOUNTDISABLE) == UserAccountControlFlag.ACCOUNTDISABLE;
+        UserAccountControl.HasFlag(UserAccountControlFlags.AccountDisable);
 
     public bool IsLockedOut() =>
-        (UserAccountControl & UserAccountControlFlag.LOCKOUT) == UserAccountControlFlag.LOCKOUT;
+        UserAccountControl.HasFlag(UserAccountControlFlags.Lockout);
+
+    public bool DoesPasswordNeverExpire() =>
+        UserAccountControl.HasFlag(UserAccountControlFlags.DontExpirePassword);
 
     public static DefaultUser? ParseUser(SearchResultEntry entry)
     {
+        ArgumentNullException.ThrowIfNull(entry);
+
         var user = new DefaultUser
         {
-            ObjectGuid = new Guid(entry.GetAttributeValue<byte[]>("objectGUID")!),
-            SAMAccountName = entry.GetAttributeValue<string>("sAMAccountName")!,
-            UserPrincipalName = entry.GetAttributeValue<string>("userPrincipalName")!,
-            UserAccountControl = (UserAccountControlFlag)int.Parse(entry.GetAttributeValue<string>("userAccountControl")!),
-            CreatedAt = DateTimeOffset.ParseExact(entry.GetAttributeValue<string>("whenCreated")!, "yyyyMMddHHmmss.fZ", CultureInfo.InvariantCulture),
-            LastModifiedAt = DateTimeOffset.ParseExact(entry.GetAttributeValue<string>("whenChanged")!, "yyyyMMddHHmmss.fZ", CultureInfo.InvariantCulture),
-            DistinguishedName = entry.GetAttributeValue<string>("distinguishedName")!,
-            CommonName = entry.GetAttributeValue<string>("cn"),
-            Name = entry.GetAttributeValue<string>("name"),
-            Email = entry.GetAttributeValue<string>("mail"),
-            TelephoneNumber = entry.GetAttributeValue<string>("telephoneNumber"),
-            GivenName = entry.GetAttributeValue<string>("givenName"),
-            Surname = entry.GetAttributeValue<string>("sn"),
-            Company = entry.GetAttributeValue<string>("company"),
-            Info = entry.GetAttributeValue<string>("info"),
-            LogonCount = int.TryParse(entry.GetAttributeValue<string>("logonCount"), out int lc) ? lc : 0,
-            LastLogon = long.TryParse(entry.GetAttributeValue<string>("lastLogon"), out long ll) ? ll : 0,
-            LastLogonTimestamp = long.TryParse(entry.GetAttributeValue<string>("lastLogonTimestamp"), out long llt) ? llt : 0,
-            LastLogonDt = ll > 0 ? DateTimeOffset.FromFileTime(ll) : default,
-            LastLogonTimestampDt = llt > 0 ? DateTimeOffset.FromFileTime(llt) : default
+            ObjectGuid = entry.GetGuid("objectGUID"),
+            SamAccountName = entry.GetString("sAMAccountName") ?? string.Empty,
+            UserPrincipalName = entry.GetString("userPrincipalName"),
+            UserAccountControl = (UserAccountControlFlags)(entry.GetInt32("userAccountControl") ?? 0),
+            CreatedAt = entry.GetGeneralizedTime("whenCreated"),
+            LastModifiedAt = entry.GetGeneralizedTime("whenChanged"),
+            DistinguishedName = entry.GetString("distinguishedName") ?? entry.DistinguishedName,
+            CommonName = entry.GetString("cn"),
+            Name = entry.GetString("name"),
+            Email = entry.GetString("mail"),
+            TelephoneNumber = entry.GetString("telephoneNumber"),
+            GivenName = entry.GetString("givenName"),
+            Surname = entry.GetString("sn"),
+            Company = entry.GetString("company"),
+            Info = entry.GetString("info"),
+            LogonCount = entry.GetInt32("logonCount") ?? 0,
+            LastLogon = entry.GetInt64("lastLogon") ?? 0,
+            LastLogonTimestamp = entry.GetInt64("lastLogonTimestamp") ?? 0,
+            LastLogonTime = entry.GetFileTime("lastLogon"),
+            LastLogonTimestampTime = entry.GetFileTime("lastLogonTimestamp")
         };
 
-        if (entry.Attributes["memberOf"] is not null)
+        foreach (string group in entry.GetStrings("memberOf"))
         {
-            var groups = entry.Attributes["memberOf"];
-
-            foreach (var group in groups)
-            {
-                if (group is byte[] groupBytes)
-                {
-                    user.Groups.Add(Encoding.UTF8.GetString(groupBytes));
-                }
-            }
+            user.Groups.Add(group);
         }
 
         return user;
     }
 
     /// <summary>
-    /// Requesting fields.
+    /// Default Active Directory attributes requested for DefaultUser.
     /// </summary>
-    public static readonly string[] Attributes = [
+    public static readonly string[] Attributes =
+    [
         "objectGUID",
         "sAMAccountName",
         "userPrincipalName",
@@ -190,5 +181,6 @@ public class DefaultUser : IUser<DefaultUser>
         "info",
         "logonCount",
         "lastLogon",
-        "lastLogonTimestamp"];
+        "lastLogonTimestamp"
+    ];
 }
