@@ -27,7 +27,7 @@ public class ActiveDirectoryIntegrationTests
         var (service, _) = CreateService();
         using (service)
         {
-            DefaultUser? john = service.GetUserByUpn("john@lorien.local");
+            DefaultUser? john = service.GetUserByUpn<DefaultUser>("john@lorien.local");
 
             Assert.NotNull(john);
             Assert.Equal("john", john.SamAccountName);
@@ -43,7 +43,9 @@ public class ActiveDirectoryIntegrationTests
         var (service, _) = CreateService();
         using (service)
         {
-            DefaultUser? john = await service.GetUserByUpnAsync("john@lorien.local");
+            DefaultUser? john = await service.GetUserByUpnAsync<DefaultUser>(
+                "john@lorien.local",
+                cancellationToken: TestContext.Current.CancellationToken);
 
             Assert.NotNull(john);
             Assert.Equal("john", john.SamAccountName);
@@ -57,7 +59,7 @@ public class ActiveDirectoryIntegrationTests
         var (service, _) = CreateService();
         using (service)
         {
-            DefaultUser? user = service.GetUserBySam("john");
+            DefaultUser? user = service.GetUserBySam<DefaultUser>("john");
 
             Assert.NotNull(user);
             Assert.Equal("john", user.SamAccountName);
@@ -71,7 +73,7 @@ public class ActiveDirectoryIntegrationTests
         using (service)
         {
             const string groupDn = "CN=Company Managers,OU=Company Groups,DC=lorien,DC=local";
-            List<DefaultUser> managers = service.GetUsersByGroup(groupDn).ToList();
+            List<DefaultUser> managers = service.GetUsersByGroup<DefaultUser>(groupDn).ToList();
 
             Assert.NotEmpty(managers);
             Assert.Contains(managers, m => m.UserPrincipalName == "john@lorien.local");
@@ -87,7 +89,9 @@ public class ActiveDirectoryIntegrationTests
             const string groupDn = "CN=Company Managers,OU=Company Groups,DC=lorien,DC=local";
             var managers = new List<DefaultUser>();
 
-            await foreach (DefaultUser manager in service.GetUsersByGroupAsync(groupDn))
+            await foreach (DefaultUser manager in service.GetUsersByGroupAsync<DefaultUser>(
+                groupDn,
+                cancellationToken: TestContext.Current.CancellationToken))
             {
                 managers.Add(manager);
             }

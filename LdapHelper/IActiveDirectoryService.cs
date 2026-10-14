@@ -79,23 +79,6 @@ public interface IActiveDirectoryService : IDisposable
         where TUser : class, IUser<TUser>;
 
     /// <summary>
-    /// Retrieves a single DefaultUser by sAMAccountName (Windows logon name).
-    /// </summary>
-    DefaultUser? GetUserBySam(
-        string samAccountName,
-        string? queryBase = null,
-        string[]? attributes = null);
-
-    /// <summary>
-    /// Asynchronously retrieves a single DefaultUser by sAMAccountName (Windows logon name).
-    /// </summary>
-    Task<DefaultUser?> GetUserBySamAsync(
-        string samAccountName,
-        string? queryBase = null,
-        string[]? attributes = null,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Retrieves a single user by userPrincipalName (UPN).
     /// </summary>
     TUser? GetUserByUpn<TUser>(
@@ -113,23 +96,6 @@ public interface IActiveDirectoryService : IDisposable
         string[]? attributes = null,
         CancellationToken cancellationToken = default)
         where TUser : class, IUser<TUser>;
-
-    /// <summary>
-    /// Retrieves a single DefaultUser by userPrincipalName (UPN).
-    /// </summary>
-    DefaultUser? GetUserByUpn(
-        string upn,
-        string? queryBase = null,
-        string[]? attributes = null);
-
-    /// <summary>
-    /// Asynchronously retrieves a single DefaultUser by userPrincipalName (UPN).
-    /// </summary>
-    Task<DefaultUser?> GetUserByUpnAsync(
-        string upn,
-        string? queryBase = null,
-        string[]? attributes = null,
-        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves all users that are members of the specified group distinguished name.
@@ -151,25 +117,6 @@ public interface IActiveDirectoryService : IDisposable
         int pageSize = 1000,
         CancellationToken cancellationToken = default)
         where TUser : class, IUser<TUser>;
-
-    /// <summary>
-    /// Retrieves all DefaultUser instances that are members of the specified group distinguished name.
-    /// </summary>
-    IEnumerable<DefaultUser> GetUsersByGroup(
-        string groupDistinguishedName,
-        string? queryBase = null,
-        string[]? attributes = null,
-        int pageSize = 1000);
-
-    /// <summary>
-    /// Asynchronously retrieves all DefaultUser instances that are members of the specified group distinguished name.
-    /// </summary>
-    IAsyncEnumerable<DefaultUser> GetUsersByGroupAsync(
-        string groupDistinguishedName,
-        string? queryBase = null,
-        string[]? attributes = null,
-        int pageSize = 1000,
-        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Changes an Active Directory user password with verification of the old password.

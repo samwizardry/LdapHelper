@@ -252,19 +252,6 @@ public class ActiveDirectoryService : IActiveDirectoryService
         return null;
     }
 
-    public DefaultUser? GetUserBySam(
-        string samAccountName,
-        string? queryBase = null,
-        string[]? attributes = null) =>
-        GetUserBySam<DefaultUser>(samAccountName, queryBase, attributes);
-
-    public Task<DefaultUser?> GetUserBySamAsync(
-        string samAccountName,
-        string? queryBase = null,
-        string[]? attributes = null,
-        CancellationToken cancellationToken = default) =>
-        GetUserBySamAsync<DefaultUser>(samAccountName, queryBase, attributes, cancellationToken);
-
     public TUser? GetUserByUpn<TUser>(
         string upn,
         string? queryBase = null,
@@ -308,19 +295,6 @@ public class ActiveDirectoryService : IActiveDirectoryService
         return null;
     }
 
-    public DefaultUser? GetUserByUpn(
-        string upn,
-        string? queryBase = null,
-        string[]? attributes = null) =>
-        GetUserByUpn<DefaultUser>(upn, queryBase, attributes);
-
-    public Task<DefaultUser?> GetUserByUpnAsync(
-        string upn,
-        string? queryBase = null,
-        string[]? attributes = null,
-        CancellationToken cancellationToken = default) =>
-        GetUserByUpnAsync<DefaultUser>(upn, queryBase, attributes, cancellationToken);
-
     public IEnumerable<TUser> GetUsersByGroup<TUser>(
         string groupDistinguishedName,
         string? queryBase = null,
@@ -359,21 +333,6 @@ public class ActiveDirectoryService : IActiveDirectoryService
 
         return GetUsersAsync<TUser>(attributes ?? DefaultUser.Attributes, effectiveBase, filter, pageSize, cancellationToken);
     }
-
-    public IEnumerable<DefaultUser> GetUsersByGroup(
-        string groupDistinguishedName,
-        string? queryBase = null,
-        string[]? attributes = null,
-        int pageSize = 1000) =>
-        GetUsersByGroup<DefaultUser>(groupDistinguishedName, queryBase, attributes, pageSize);
-
-    public IAsyncEnumerable<DefaultUser> GetUsersByGroupAsync(
-        string groupDistinguishedName,
-        string? queryBase = null,
-        string[]? attributes = null,
-        int pageSize = 1000,
-        CancellationToken cancellationToken = default) =>
-        GetUsersByGroupAsync<DefaultUser>(groupDistinguishedName, queryBase, attributes, pageSize, cancellationToken);
 
     public void ChangePassword(string distinguishedName, string oldPassword, string newPassword)
     {
